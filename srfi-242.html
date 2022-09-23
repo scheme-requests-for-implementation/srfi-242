@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>SRFI 242: The CFG Language</title>
+    <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
+    <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1"></head>
+    <style>
+      body
+      {
+	  counter-reset: section;
+	  font-family: serif;
+      }
+      h2
+      {
+	  counter-reset: subsection;
+      }
+      h2:not(#issues)::before
+      {
+	  counter-increment: section;
+	  content: counter(section) " ";
+      }
+      h3
+      {
+	  counter-reset: subsubsection;
+      }
+      h3::before
+      {
+	  counter-increment: subsection;
+	  content: counter(section) "." counter(subsection) " ";
+      }
+      h4::before
+      {
+	  counter-increment: subsubsection;
+	  content: counter(section) "." counter(subsection) "." counter(subsubsection) " ";
+      }
+      span.token
+      {
+          font-family: serif;
+      }
+      span.token::before
+      {
+          content: "⟨";
+      }
+      span.token::after
+      {
+          content: "⟩";
+      }
+      dl.entries dt
+      {
+	  background-color: lightgrey;
+      }
+      dl.entries dd
+      {
+	  margin-left: 0;
+      }
+      dl.entries > dt.condition-type::after
+      {
+	  float: right;
+	  content: "condition type"
+      }
+      dl.entries > dt.procedure::after
+      {
+	  float: right;
+	  content: "procedure"
+      }
+      dl.entries > dt.syntax::after
+      {
+	  float: right;
+	  content: "syntax"
+      }
+      dl.entries > dt.cfg::after
+      {
+	  float: right;
+	  content: "cfg syntax"
+      }
+      dt.entry > span.type
+      {
+	  float: right;
+      }
+      pre, code
+      {
+	  font-size: smaller;
+      }
+      pre.example
+      {
+	  margin-left: 1em;
+	  margin-right: 1em;
+      }
+      pre.example > span.result
+      {
+	  float: right;
+      }
+      pre.example > span.result::before
+      {
+	  padding-left: 1em;
+	  padding-right: 1em;
+	  content: "⟹"
+      }
+      sup
+      {
+	  display: inline-block;
+      }
+    </style>
+  <body>
+    <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI surfboard logo" /></a>242: The CFG Language</h1>
+
+    <p>by Marc Nieper-Wißkirchen</p>
+
+    <h2 id="status">Status</h2>
+
+    <p style="color: red;">For editor's use only.  Please do not edit this section.</p>
+
+    <p>??? the draft/final/withdrawn status of the SRFI, information on how
+      to subscribe to its mailing list, and important dates in its history.
+      The editor will add this section.</p>
+
+    <h2 id="abstract">Abstract</h2>
+
+    <p>This SRFI defines a language to describe control-flow graphs
+      (CFGs) suitable for formulating iterative and recursive
+      algorithms.  Using the notion of a CFG term, this language can
+      be seamlessly embedded in the Scheme language.  Complex CFG
+      terms can be composed from simple CFG terms.</p>
+
+    <h2 id="issues">Issues</h2>
+
+    <p>There are none at present.</p>
+
+    <h2 id="rationale">Rationale</h2>
+
+    <p>In the Scheme language, procedures (and thus jump labels,
+      according to lambda-the-ultimate philosophy) are first-class
+      entities.  In a certain sense, this makes the control-flow graph
+      of a Scheme program a dynamic and not a static entity.</p>
+
+    <p>The CFG language described in this SRFI, on the other hand,
+      describes a static control-flow graph.  For the applications
+      where this is sufficient, this has the advantage that the
+      control-flow graph can be readily statically reasoned about,
+      allowing in particular to define variable scope in terms of
+      it.</p>
+
+    <p>The CFG language itself is useful for describing iterative and
+      recursive algorithms clearer than it is possible in the
+      Scheme language through tail calls and (multiple) return values.
+      Its main raison d'être, however, is that more specialized languages
+      like that of a loop facility can be easily built on top of
+      it.</p>
+
+    <p>The origin of the CFG language described in this SRFI is Olin
+      Shiver's paper <i>The Anatomy of a Loop: A story of scope and
+        control</i>.  In his paper, he makes two important
+      points: The main iterative control construct in Scheme is a tail
+      call.  While a tail call as a <q>goto that passes arguments</q>
+      is a pretty powerful construct, it is also as low-level as a
+      goto.  His first point is that this implies that it is not the
+      right tool to write down iterative algorithms in a high-level
+      fashion.  This fact has stimulated the search for loop
+      facilities allowing to express iterative algorithms more
+      abstractly and more composably.  His second point is that like
+      the scoping of variables is well-defined in the Scheme
+      language, a well-defined model of (loop) variable scoping is
+      needed for loop facilities as well.  For this, he formulates a
+      new scoping rule, namely that binders dominate references.</p>
+
+    <p>While not all surface syntax has been adopted from Olin
+      Shiver's paper, the core of the language described here subsumes
+      his conception.  The addition of a facility to handle not only
+      iterative but also recursive algorithms is a new invention in
+      this SRFI.  This addresses a third perceived shortcoming of the
+      Scheme language.  Recursive algorithms in Scheme are based on
+      that Scheme procedures return values, possibly multiple ones.
+      However, as soon as more than one value needs to be returned and
+      each recursion step does only need to modify one of them, a
+      position-only identification of return values becomes unclear
+      and leads to repetition of code.  Instead, the CFG language in
+      this SRFI gives names to intermediate results and allows
+      parallel processing of them.</p>
+
+    <p>Thanks to Scheme's expressive macro system, the CFG language
+      can be seamlessly implemented in the standard Scheme language,
+      fully respecting Scheme semantics.</p>
+
+    <p>The author plans to submit a SRFI describing an extensible loop
+      facility built on the CFG language defined in this SRFI in the
+      future.</p>
+
+    <h3>Examples</h3>
+
+    <p>The following expression evaluates to an (iterative) procedure that takes a
+      list of integers and returns two values, the number of even and
+      the number of odd values in the list.</p>
+
+    <pre class=example>(lambda (n*)
+  (cfg
+      (labels [(f (execute
+                    (lambda (next done)
+                      (if (null? n*)
+                          (done)
+                          (next (car n*) (cdr n*))))
+                    [(n n*)
+                     (execute
+                       (lambda (even odd)
+                         (if (odd? n)
+                             (odd (+ o 1))
+                             (even (+ e 1))))
+                       [(e) (call f)]
+                       [(o) (call f)])]
+                    [()
+                     (finally (e o) (values e o) (halt))]))]
+        (execute (lambda (start) (start n* 0 0)) [(n* e o) (call f)]))
+    (values e o)))</pre>
+
+    <p>The following expression evaluates to a (recursive) procedure that takes a
+      list of integers and returns two values, the sublist of even
+      values and the sublist of odd values.</p>
+
+    <pre class=example>(lambda (n*)
+  (cfg
+      (labels [(f (execute
+                    (lambda (next done)
+                      (if (null? n*)
+                          (done)
+                          (next (car n*) (cdr n*))))
+                    [(n n*)
+                     (execute
+                       (lambda (even odd)
+                         (if (odd? n)
+                             (odd)
+                             (even)))
+                       [()
+                        (finally (e*) (cons n e*) (call f))]
+                       [()
+                        (finally (o*) (cons n o*) (call f))])]
+                    [()
+                     (finally (e* o*) (values '() '()) (halt))]))]
+        (execute (lambda (start) (start n*)) [(n*) (call f)]))
+    (values e* o*)))</pre>
+
+    <h2 id="specification">Specification</h2>
+
+    <p>The identifiers defined in this section are exported by
+      the <code>(srfi :242 cfg)</code> and the <code>(srfi :242)</code>
+      libraries in case of an R<sup>6</sup>RS system and by
+      the <code>(srfi 242)</code> library in case of an R<sup>7</sup>RS
+      system.</p>
+
+    <h3>CFGs</h3>
+
+    <p>A <dfn>control-flow graph (CFG)</dfn> is a (finite) set of <dfn>CFG blocks</dfn>
+      together with a <dfn>predecessor</dfn> relation such that there
+      is exactly one CFG block with no predecessor.  This CFG block is
+      the <dfn>entry block</dfn> of the cfg.</p>  A CFG block that is
+      not the predecessor of any other block is an <dfn>exit
+      block</dfn>.  A CFG block is a <dfn>successor</dfn> of another
+      one if the latter is a predecessor of the former.
+
+    <p>The <dfn>dominance</dfn> relation of a CFG is the largest
+      relation on the set of its CFG blocks such that the following
+      holds: The set of strict dominators of the entry block is empty.
+      The set of strict dominators of any other block is a subset of
+      the set of dominators of each predecessor of the block.  Here,
+      a <dfn>strict dominator</dfn> of a block is a dominator that is
+      not the block itself.</p>
+
+    <p><i>Note:</i> From the definition it follows that each block dominates
+      (but not strictly dominates) itself.</p>
+
+    <p>The <dfn>post-dominance</dfn> relation of a CFG is the largest
+      relation on the set of its CFG blocks such that the following
+      holds: The set of strict post-dominators of an exit block is
+      empty.  The set of strict post-dominators of any other block is
+      a subset of the set of post-dominators of each successor of the
+      block.  Here, a <dfn>strict post-dominator</dfn> of a block is a
+      post-dominator that is not the block itself.</p>
+
+    <h3>Loop and return variables</h3>
+
+    <p><dfn>Loop variables</dfn> are <dfn>introduced</dfn> in CFG blocks.
+      A loop variable's <dfn>scope</dfn> is the smallest set of
+      CFG blocks that contains each CFG block in which the loop
+      variable is introduced and so that whenever a CFG block is
+      contained in it, all CFG blocks that it dominates are also
+      contained in it.</p>
+
+    <p><dfn>Return variables</dfn> are also <dfn>introduced</dfn> in
+      CFG blocks.  A return variable's <dfn>scope</dfn> is the set of
+      CFG blocks that strictly post-dominate the CFG block in which
+      the return variable is introduced.</p>
+
+    <h3>CFG locations</h3>
+
+    <p><dfn>CFG locations</dfn> can hold CFG blocks.</p>
+
+    <h3>Pending sets</h3>
+
+    <p>A <dfn>pending set</dfn> is a set of pairs each consisting of a
+      CFG location and a CFG block.</p>
+
+    <p>When a pending set is <dfn>materialized</dfn> with a CFG block
+      as its <dfn>tail</dfn>, the pairs of CFG locations and CFG
+      blocks of the pending set are ordered non-determinalistally.  In
+      the CFG location of each pair, the CFG block of the following
+      pair is then stored.  In the CFG location of the last pair, the
+      tail CFG block is stored.  For each CFG block in the list of
+      pairs, its set of successors is the one-element set containing
+      the CFG block of the following pair.  For the CFG block in the
+      last pair, its set of successors is the one-element set
+      consisting of the tail CFG block.  The CFG block in the first
+      pair is then returned as the result of the materialization.</p>
+
+    <h3>CFG states</h3>
+
+    <p>A <dfn>CFG state</dfn> is a (finite) set of bindings from
+      identifiers to values.</p>
+
+    <h3>CFG terms</h3>
+
+    <p>A <dfn>CFG term</dfn> is a syntactic construct in the CFG
+      language that can be evaluated within a pending set.  The result
+      of the evaluation is a CFG.  A block in this CFG can
+      be <dfn>called</dfn> with a CFG state.  The result of this call
+      is again a CFG state.  Evaluation of CFG terms happens during
+      expand-time, calling of CFG terms during runtime.</p>
+
+    <h3>Entry format</h3>
+
+    <p>Each entry is of one of two categories, &ldquo;syntax&rdquo; or
+      &ldquo;cfg syntax&rdquo;.  The first category is as in
+      R<sup>6</sup>RS and R<sup>7</sup>RS, while an entry of the second
+      category describes a syntactic construct in the CFG language.</p>
+
+    <h3>CFG Expressions</h3>
+
+    <dl class=entries>
+
+      <!-- cfg -->
+      <dt class=syntax><code>(cfg <span class="token">cfg term</span> <span class="token">result expression</span>)</code></dt>
+      <dd>
+	<p><i>Syntax:</i> <code><span class=token>Cfg
+	term</span></code> is an arbitrary CFG
+	term, <code><span class=token>result expression</span></code>
+	is an arbitrary Scheme expression.</p>
+
+	<p><i>Semantics:</i> A <code>cfg</code> expression is
+	  evaluated by first evaluating
+	  the <code><span class="token">cfg term</span></code> within
+	  an empty pending list, resulting in a CFG.  Its entry block
+	  is then called with an empty CFG state, yielding a resulting
+	  CFG state.  The environment of the
+	  <code>cfg</code> expression is then extended by binding the
+	  return variables in whose scope
+	  the <code><span class=token>result expression</span></code>
+	  is to locations holding the values to which they are bound
+	  in the resulting CFG state.  Finally,
+	  the <code><span class=token>result expression</span></code>
+	  is evaluated in this extended environment and its values
+	  returned as the results of the <code>cfg</code>
+	  expression.</p>
+      </dd>
+    </dl>
+
+    <p>The simplest <code>cfg</code> expression just halts and returns
+    some value(s) (the <code>halt</code> and the other cfg terms are
+    describes in the next subsection):</p>
+
+    <pre class=example>(cfg (halt) 'done)<span class=result>done</span></pre>
+
+    <p>Using a <code>finally</code> cfg term, return variables can be
+    bound that can be used in the <code><span class=token>result
+	  expression</span></code>:</p>
+
+    <pre class=example>(let ([x 1])
+  (cfg (finally (x y) (values (+ x 1) (+ x 2))
+         (halt))
+    (list x y)))<span class=result>(2 3)</span></pre>
+
+    <p>Loop variables are bound through <code>execute</code> terms:</p>
+
+    <pre class=example>(let ([x 1])
+  (cfg (execute (lambda (e)
+                  (e (+ x 1)))
+         [(x) (finally (res) x (halt))])
+    res))<span class=result>2</span></pre>
+
+    <p><code>Execute</code> CFG terms can have more than one successor;
+      during evaluation one control path is chosen:</p>
+
+    <pre class=example>(let ([x 1])
+  (cfg (execute (lambda (e1 e2)
+                  (if (even? x) (e1) (e2 &apos;odd)))
+         [() (finally (res) 'even (halt))]
+         [(a) (finally (res) a (halt))])
+    res))<span class=result>odd</span></pre>
+
+    <p>Due to loop variable scoping, the second <code>finally</code>
+    cannot simply be hoisted because it would no longer be dominated
+    by the introduction of the loop
+    variable <code><var>a</var></code>:</p>
+
+    <pre class=example>(let ([a &apos;outer]
+      [x 1])
+  (cfg (finally (res) a
+         (execute (lambda (e1 e2)
+                    (if (even? x) (e1) (e2 &apos;odd)))
+           [() (finally (res) 'even (halt))]
+           [(a) (halt)]))
+      res))<span class=result>outer</span></pre>
+
+    <p>And due to return variable scoping, the
+    first <code>finally</code> cannot simply be left out because the
+    entry block would no longer post-dominate an introduction of
+      the <code><var>res</var></code> return variable:</p>
+
+    <pre class=example>(let ([res &apos;outer]
+      [x 1])
+   (cfg (execute (lambda (e1 e2)
+                   (if (even? x) (e1) (e2 &apos;odd)))
+          [() (halt)]
+          [(a) (finally (res) a (halt))])
+      res))<span class=result>outer</span></pre>
+
+    <p>Loop variables are called loop variables because the main
+      reason for the CFG language is that it allows writing loops.
+      This can be done with <code>labels</code> CFG terms (here, we
+      use the <code>bind</code> macro from the CFG syntax definition
+      example below):</p>
+
+    <pre class="example">(cfg (labels ([f (execute
+                     (lambda (e1 e2)
+                       (if (> x 6)
+                                              (e1)
+                                              (e2 (+ x 1) (* a x))))
+                   [() (finally (res) a (halt))]
+                   [(x a) (call f)])])
+       (bind [(x 1) (a 1)] (call f)))
+  res)<span class=result>720</span></pre>
+
+    <p>Finally, <code>permute</code> CFG terms can be used to create
+      sequences of CFG blocks so that loop variables and return
+      variables introduced in these blocks do not have the other
+      blocks of this sequence in scope (comparable to scoping rules of
+      the <code>let</code> expression of Scheme):</p>
+
+    <pre class="example">
+(let ([x &apos;outer] [y &apos;outer])
+  (cfg (label* ([c (permute ([p (finally (y) &apos;inner
+                                  (bind ([a x]) (call p)))])
+                     (finally (a) a (halt)))])
+         (permute [(p (finally (b) y
+                        (bind ([x &apos;inner]) (call p))))]
+           (call c)))
+    (list a b)))<span class=result>(outer outer)</span></pre>
+
+    <p>(<code>Label*</code> CFG terms does not allow loops
+      as <code>labels</code> CFG terms but <code>permute</code>
+      sequences carry forward across calls to labels introduced
+      by <code>label*</code>.)</p>
+
+    <h3>Primitive CFG terms</h3>
+
+    <p>The following entries describe the primitive CFG terms.
+      A <code><span class=token>label</span></code> is an identifier.
+      Labels do not occupy the same namespace as keywords and all kind
+      of variables.  That is, within the same scope, an identifier can
+      be bound as a label and as a variable or keyword, and local
+      bindings of either kind do not shadow other bindings of the
+      other kind.  There are two (disjoint) types of
+      labels, <code><span class=token>static labels</span></code>
+      and <code><span class=token>dynamic labels</span></code>.
+      Static labels are bound to CFG terms, and dynamic labels are
+      bound to CFG locations.</p>
+
+    <dl class=entries>
+      <!-- execute -->
+      <dt class=cfg><code>(execute <span class=token>procedure
+      expression</span>
+      [<span class=token>formals</span> <span class="token">cfg term</span>]
+      &hellip;)</code></dt>
+      <dd>
+	<p>When an <code>execute</code> CFG term is evaluated in
+	  an environment and within a pending set,
+	  the <code><span class="token">cfg terms</span></code>
+	  are evaluated to CFG blocks in no particular order in the
+	  environment, each within an empty pending set.  The pending
+	  set in which the <code>execute</code> CFG term is being
+	  evaluated is then materialized with a new <var>CFG block</var>
+	  as its tail and the materialization is returned.</p>
+
+	<p>When the <var>cfg block</var> is later called with a CFG
+	  state, the environment of the surrounding <code>cfg</code>
+	  expression is extended by binding each loop variable, in
+	  whose scope the <code>execute</code> CFG term is, to a fresh
+	  location holding the value to which it is bound in the CFG
+	  state.  The <code><span class=token>procedure
+	  expression</span></code> is then evaluated in this extended
+	  environment to yield a procedure value.  This procedure is
+	  then tail-called with as many procedure arguments as there
+	  are <code><span class="token">cfg terms</span></code>.  The
+	  procedure should call one of the arguments exactly once and
+	  the call should be a tail call.  In the continuation of this
+	  tail call, the CFG state is then extended by binding the
+	  corresponding <code><span class=token>formals</span></code>
+	  to the return values of the call, and the CFG block
+	  resulting from the evaluation of the
+	  corresponding <code><span class=token>cfg term</span></code>
+	  is then tail-called with the extended CFG state and the
+	  resulting CFG state is returned.</p>
+
+	<p>The <var>CFG block</var> has the CFG blocks resulting from evaluation
+	  of the <code><span class=token>cfg terms</span></code> as
+	  successors.</p>
+
+	<p>The variables of each <code>formals</code> are introduced
+	  as loop variables in the corresponding CFG block.</p>
+      </dd>
+
+      <!-- halt -->
+      <dt class=cfg><code>(halt)</code></dt>
+      <dd>
+	<p>When a <code>(halt)</code> CFG term is evaluated, the
+	  pending set is materialized with a new <var>CFG block</var> as
+	  its tail and the materialization is returned.</p>
+
+	<p>When the <var>CFG block</var> is called with a CFG state,
+	  it simply returns an empty CFG state.</p>
+
+	<p>The <var>CFG block</var> has no successors.</p>
+      </dd>
+
+      <!-- labels -->
+      <dt class=cfg><code>(labels
+      ([<span class="token">dynamic label</span> <span class=token>cfg term</span>]
+      &hellip;) <span class=token>body cfg term</span>)</code></dt>
+      <dd>
+        <p>When a <code>labels</code> CFG term is evaluated in an
+          environment within a pending set, the environment is
+          extended by binding
+          each <code><span class="token">label</span></code> to a CFG
+          location initially holding an invalid CFG block.
+          The <code><span class=token>cfg terms</span></code> and
+          the <code><span class=token>body cfg term</span></code>
+          are then evaluated in an unspecified order in this extended
+          environment.  In this environment,
+          the <code><span class=token>cfg terms</span></code> are
+          evaluated within an empty pending set and
+          the <code><span class=token>body cfg term</span></code>
+          is evaluated within the pending set, in which
+          the <code>labels</code> CFG term is being evaluated.
+          For each <code><span class=token>label</span></code>, the
+          CFG block resulting from evaluating the
+          corresponding <code><span class=token>cfg term</span></code>
+          is then stored in the corresponding CFG location.  Finally,
+          the CFG block resulting from evaluation of
+          the <code><span class=token>body cfg term</span></code>
+          is returned.</p>
+
+        <p>When the CFG block returned by the <code>labels</code> CFG
+          term is later called with a CFG state, the CFG block resulting
+          from evaluation
+          the <code><span class=token>body cfg term</span></code> is
+          tail-called with the CFG state and the resulting CFG state is
+          returned.</p>
+      </dd>
+
+      <!-- label* -->
+      <dt class=cfg><code>(label* ([<span class="token">static
+      label</span> <span class=token>cfg term</span>]) <span class=token>body cfg term</span>)</code></dt>
+      <dd>
+        <p>When a <code>label*</code> CFG term is evaluated in an
+          environment within a pending set, the environment is
+          extended by binding
+          the <code><span class=token>label</span></code> to the
+          (unevaluated) <code><span class=token>cfg
+          term</span></code>.
+          The <code><span class=token>body cfg term</span></code>
+          is then evaluated in this environment within the pending
+          set.  The result of this evaluation is returned.</p>
+
+        <p>When the CFG block returned by the <code>labels</code> CFG
+          term is later called with a CFG state, the CFG block resulting
+          from evaluation
+          the <code><span class=token>body cfg term</span></code> is
+          called with the CFG state and the resulting CFG state is
+          returned.</p>
+
+	<p>It is a syntax or undefined violation if
+	  evaluating <code><span class=token>cfg term</span></code>
+	  in the non-extended environment within the empty pending set
+	  would raise an exception of type <code>&amp;syntax</code>
+	  or <code>&amp;undefined</code>, respectively.</p>
+
+        <p><i>Note:</i> The <code>label*</code> syntax will be extended below.</p>
+      </dd>
+
+      <!-- call (static) -->
+      <dt class=cfg><code>(call <span class=token>static label</span>)</code></dt>
+      <dd>
+        <p>When the <code>call</code> CFG term is evaluated in an
+          environment and within a pending set, the CFG term to which
+          the <code><span class=token>static label</span></code> is
+          bound is evaluated in the same environment and within the
+          same pending set, and the result of this evaluation is returned.</p>
+
+	<p>It is an undefined violation if
+	  the <code><span class=token>static label</span></code> is
+	  not bound in the environment in which the <code>call</code>
+	  CFG term is evaluated.</p>
+      </dd>
+
+      <!-- call (dynamic) -->
+      <dt class=cfg><code>(call <span class=token>dynamic label</span>)</code></dt>
+      <dd>
+        <p>When the <code>call</code> CFG term is evaluated in an
+          environment within a pending set, the location to which
+          the <code><span class=token>dynamic label</span></code> is
+          bound is looked up and remembered.  The pending set is then
+          materialized with a new <var>CFG block</var> as its tail and
+          the materialization is returned.
+
+        <p>When the CFG block returned by the <code>call</code> CFG
+          term is called with a CFG state, the CFG block stored in the
+          remembered location is tail-called with the CFG state and the
+          resulting CFG is returned.</p>
+
+        <p>The <var>CFG block</var> returned by the <code>call</code> CFG term
+          has the CFG block eventually stored in the remembered location
+          as its successor.</p>
+
+	<p>It is an undefined violation if
+	  the <code><span class=token>dynamic label</span></code> is not bound
+	  in the environment in which the <code>call</code> CFG term
+	  is evaluated.</p>
+      </dd>
+
+
+      <!-- finally -->
+      <dt class=cfg><code>(finally <span class=token>cfg formals</span> <span class=token>expression</span> <span class=token>cfg term</span>)</code></dt>
+      <dd>
+        <p>When a <code>finally</code> CFG term is evaluated
+	  within a pending set, the pending set is materialized with a
+	  new <var>CFG block</var> as its tail, and the
+	  materialization is returned.</p>
+
+        <p>When the <var>CFG block</var> is later called with a CFG
+          state, the environment of the surrounding <code>cfg</code>
+          expression is extended by binding each loop variable, in
+          whose scope the CFG block is, to a fresh location holding
+          the value to which it is bound in the CFG state.  Then, the
+          CFG block resulting from evaluation of
+          the <code>cfg term</code> is called.  The extended
+          environment is then further extended by binding each return
+          variable, in whose scope the CFG block returned by
+          the <code>finally</code> CFG term is, to a fresh
+          location holding the value to which it is bound in the
+          returned CFG state.  Then,
+          the <code><span token=class>expression</span></code> is
+          evaluated in the doubly extended environment and the CFG
+          state received from call the <code><span class=token>cfg
+          term</span></code> is extended by binding
+          the <code><span class=token>formals</span></code> to the
+          values receving from evaluating
+          the <code><span token=class>expression</span></code>, and
+          the extended CFG state is then returned.</p>
+
+        <p>The <var>CFG block</var> returned by
+          the <code>finally</code> CFG term has the CFG block
+          resulting from the evaluation of
+          the <code><span class=token>cfg term</span></code> as
+          its successor.</p>
+      </dd>
+
+      <!-- permute -->
+      <dt class=cfg><code>(permute <span class=token>dynamic
+	    label</span> <span class=token>cfg term</span> <span class=token>body cfg term</span>)</code></dt>
+      <dd>
+        <p>When a <code>permute</code> CFG term is evaluated in an
+          environment within a pending set, the environment is
+          extended by binding the <code><span class=token>dynamic
+          label</span></code> to a fresh CFG location initially
+          holding an invalid CFG block.
+          The <code><span class=token>cfg term</span></code> is
+          then evaluated in this extended environment within an empty
+          pending set to a CFG block.  The pending set within which
+          the <code>permute</code> CFG term is being evaluated is
+          then extended by adjoining a pair consisting of the fresh
+          location and the resulting CFG block.  Finally,
+          the <code><span class=token>body cfg term</span></code>
+          is evaluated in the original environment but within the
+          extended pending list, and the resulting CFG block is
+          returned.</p>
+
+        <p><i>Note:</i> The <code>permute</code> syntax will be extended below.</p>
+      </dd>
+    </dl>
+
+    <h3>Tail contexts</h3>
+
+    <p>If a <code>cfg</code> expression is in tail context,
+      the <code><span class=token>result expression</span></code> is in
+      tail context as well.</p>
+
+    <h3>Non-determinism</h3>
+
+    <p>Through <code>permute</code> CFG terms, non-trivial pending
+      sets are generated.  Through the non-determinism of
+      materializing pending sets, the CFGs resulting from evaluating
+      CFG terms are non-deterministic as well.  For such
+      non-deterministic CFGs (which can be viewed as a set of CFG
+      blocks together with a set of possible predecessor relations on
+      these CFG blocks), the scope of loop or return variable is
+      defined as the intersection of the scopes of the loop or return
+      variable over all possible materializations.
+    </p>
+
+    <h3>Derived CFG terms</h3>
+
+    <p>The following entries describe CFG terms that can be converted
+      into primitive CFG terms.</p>
+
+    <dl class=entries>
+
+      <!-- label* -->
+      <dt class=cfg><code>(label* ([<span class="token">static
+      label<sub>1</sub></span> <span class=token>cfg term<sub>1</sub></span>] &hellip;) <span class=token>body cfg term</span>)</code></dt>
+      <dd>
+	<p>Effectively equivalent to <code><span class=token>body cfg term</span></code> when there is no <code><span class=token>static label</span></code>.  Otherwise, effectively equivalent to
+	  <code>(label* ([<span class="token">static
+	      label<sub>1</sub></span> <span class=token>cfg term<sub>1</sub></span>])
+	    (label* ([<span class="token">static
+      label<sub>2</sub></span> <span class=token>cfg term<sub>2</sub></span>] &hellip;)
+	    <span class=token>body cfg term</span>))</code>.
+	</p>
+	<p><i>Note:</i> This cfg syntax extends the primitive <code>label*</code> syntax to more than one <code><span class=token>static label</span></code>.</p>
+      </dd>
+
+      <!-- permute -->
+      <dt class=cfg><code>(permute ([<span class="token">dynamic
+      label<sub>1</sub></span> <span class=token>cfg term<sub>1</sub></span>] &hellip;) <span class=token>body cfg term</span>)</code></dt>
+      <dd>
+	<p>Effectively equivalent to <code><span class=token>body cfg term</span></code> when there is no <code><span class=token>dynamic label</span></code>.  Otherwise, effectively equivalent to
+	  <code>(permute ([<span class="token">dynamic
+	      label<sub>1</sub></span> <span class=token>cfg term<sub>1</sub></span>])
+	    (permute ([<span class="token">dynamic
+      label<sub>2</sub></span> <span class=token>cfg term<sub>2</sub></span>] &hellip;)
+	    <span class=token>body cfg term</span>))</code>.
+	</p>
+	<p><i>Note:</i> This cfg syntax extends the
+	primitive <code>permute</code> syntax to more than
+	one <code><span class=token>dynamic label</span></code>.</p>
+      </dd>
+
+      <!-- indep -->
+      <dt class=cfg><code>(indep
+      ([<span class=token>formals</span> <span class=token>expression</span>]
+      ...) <span class=token>cfg term</span>)</code></dt>
+      <dd>
+	<p>When an <code>indep</code> CFG term is evaluated in an
+	  environment and within a pending set,
+	  the <code><span class="token">cfg term</span></code> is
+	  evaluated to CFG block in the environment within an empty
+	  pending set.  The pending set in which
+	  the <code>execute</code> CFG term is being evaluated is
+	  then materialized with a new <var>CFG block</var> as its tail
+	  and the materialization is returned.</p>
+
+	<p>When the <var>cfg block</var> is later called with a CFG
+	state, the environment of the surrounding <code>cfg</code>
+	expression is extended by binding each loop variable, in whose
+	scope the <code>indep</code> cfg term is, to a fresh location
+	holding the value to which it is bound in the CFG state.
+	The <code><span class=token>expressions</span></code> are then
+	evaluated in an unspecified order in this extended environment
+	to yield values for
+	each <code><span class=token>expression</span></code>.  The
+	CFG state is then extended by binding
+	each <code><span class=token>formals</span></code> as loop
+	variables to the return values of the corresponding
+	evaluation, and the CFG block resulting from the evaluation
+	of <code><span class=token>cfg term</span></code> is then
+	  tail-called with the extended CFG state and the resulting CFG state
+	  is returned.
+	</p>
+
+	<p>It is a syntax violation if the loop variables in
+	all <code><span class=token>formals</span></code> are not
+	pairwise different.</p>
+      </dd>
+    </dl>
+
+    <h3>CFG syntax and label definitions</h3>
+
+    <p>The Scheme syntax described in this section
+      are <code><span class=token>definitions</span></code> that may
+      appear anywhere other definitions may appear.</p>
+
+    <p>Keyword bindings established by these definitions are visible
+      throughout the body in which they appear, except where shadowed
+      by other bindings, and nowhere else, just like variable bindings
+      established by <code>define</code>. All bindings established by
+      a set of definitions are visible within the definitions
+      themselves.</p>
+
+    <!-- define-cfg-syntax -->
+    <dl class=entries>
+      <dt class=cfg><code>(<span class=token>keyword</span> <span class=token> datum</span> &hellip;)</code></dt>
+      <dt class=cfg><code>(<span class=token>keyword</span> <span class=token> datum</span> &hellip; . <span class=token>datum</span>)</code></dt>
+      <dt class=cfg><code><span class=token>keyword</span></code></dt>
+      <dd>
+	<p>
+	  At the start of the evaluation of a <code>cfg</code>
+	  expression, these <dfn>CFG macro uses</dfn> are expanded by
+	  the syntax expander into core CFG terms like Scheme macro
+	  uses are expanded into core forms.  In particular,
+	  a <dfn>CFG transformer</dfn> is like a Scheme transformer.</p>
+      </dd>
+      <dt class=syntax><code>(define-cfg-syntax <span class="token">cfg keyword</span> <span class="token">transformer expression</span></code></dt>
+      <dd>
+	<p>Binds <code><span class=token>cfg keyword</span></code> to
+	  the value <code><span class="token">transformer
+	      expression</span></code>, which must evaluate, at
+	  macro-expansion time, to a CFG transformer.
+	</p>
+      </dd>
+
+      <!-- define-cfg-syntax* -->
+      <dt class=syntax><code>(define-cfg-syntax <span class="token">cfg keyword</span> <span class="token">transformer expression</span></code></dt>
+      <dd>
+	<p>As <code>define-cfg-syntax</code> except that <code>cfg
+	    keyword</code> must be bound.  <code>Define-cfg-syntax*</code>
+	  does not change the meaning of <code>keyword</code> outside <code><span class=token>cfg terms</span></code>.
+	</p>
+      </dd>
+
+      <!-- define-cfg-label -->
+      <dt class=syntax><code>(define-cfg-label <span class="token">identifier</span>)</code></dt>
+      <dd>
+	<p>Binds the <code><span class=token>identifier</span></code> to a fresh <var>label</var>.</p>
+	<p>Whenever
+	  the <code><span class=token>identifier</span></code> appears
+	  as a <code><span class=token>static label</span></code>
+	  or <code><span class=token>dynamic label</span></code>, it is replaced by the <var>label</var>.
+	</p>
+      </dd>
+
+      <!-- define-cfg-label* -->
+      <dt class=syntax><code>(define-cfg-label* <span class="token">identifier</span>)</code></dt>
+      <dd>
+	<p>As <code>define-cfg-label</code> except that <code>identifier</code> must be bound.  <code>Define-cfg-label*</code>
+	  does not change the meaning of <code>identifier</code> outside <code><span class=token>cfg terms</span></code>.
+	</p>
+      </dd>
+    </dl>
+
+    <p>The following example defines a CFG keyword that can be used to unconditionally bind loop variables:</p>
+
+    <pre class=example>(define-cfg-syntax bind
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ [(id init) ...] cfg)
+       (for-all identifier? #'(id ...))
+       #'(execute (lambda (e)
+                    (e init ...))
+           [(id ...) cfg])])))
+
+(cfg (bind ([x 1] [y 2])
+       (finally (res) (+ x y) (halt)))
+  res)<span class=result>3</span></pre>
+
+    <p>Another useful CFG macro is the following one:</p>
+
+    <pre class=example>(define-cfg-syntax return
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ return-var ...)
+       (for-all identifier? #&apos;(return-var ...))
+       #&apos;(finally (return-var ...) (values return-var ...) (halt))])))
+
+(cfg (bind ([x 1]) (return x))
+  x)<span class=result>1</span></pre>
+
+    <p>The label definition feature is demonstrated in the following example:</p>
+
+    <pre class=example>(define-syntax permuting
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ cfg-term ... result-expr)
+       #'(cfg (permute ([p cfg-term] ...)
+		(finally (res) result-expr (halt)))
+	   res)])))
+
+(permuting (bind ([x 99]) (call p)) x)<span class=result>99</span></pre>
+
+    <h2 id="implementation">Implementation</h2>
+
+    <p>The sample implementation is a portable R<sup>6</sup>RS
+      implementation written from scratch
+      using <a href="https://srfi.schemers.org/srfi-213/srfi-213.html">SRFI
+      213</a> The sample implementation in the git repo is configured
+      for Chez Scheme.</p>
+
+    <p><a href="https://github.com/scheme-requests-for-implementation/srfi-242">Git repo for the sample implementation.</a></p>
+
+    <h2 id="acknowledgements">Acknowledgements</h2>
+
+    <p>This SRFI would not exist if there hadn't been Olin Shiver's
+      paper <em>The Anatomy of a Loop</em>.  In fact, almost all of
+      the mental effort needed for this SRFI was already provided by
+      him.  This does not imply that he does or does not endorse this
+      SRFI.</p>
+
+    <p>It was Jens Axel Søgaard who reminded me of Olin Shiver's
+      paper, which I had once read but then forgotten about it.</p>
+
+    <h2 id="copyright">Copyright</h2>
+    <p>&copy; 2022  Marc Nieper-Wißkirchen.</p>
+
+    <p>
+      Permission is hereby granted, free of charge, to any person
+      obtaining a copy of this software and associated documentation files
+      (the "Software"), to deal in the Software without restriction,
+      including without limitation the rights to use, copy, modify, merge,
+      publish, distribute, sublicense, and/or sell copies of the Software,
+      and to permit persons to whom the Software is furnished to do so,
+      subject to the following conditions:</p>
+
+    <p>
+      The above copyright notice and this permission notice (including the
+      next paragraph) shall be included in all copies or substantial
+      portions of the Software.</p>
+    <p>
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+      NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+      BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+      ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+      CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+      SOFTWARE.</p>
+
+    <hr>
+    <address>Editor: <a href="mailto:srfi-editors+at+srfi+dot+schemers+dot+org">Arthur A. Gleckler</a></address></body></html>
