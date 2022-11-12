@@ -133,17 +133,17 @@
     <p>In the Scheme language, procedures (and thus jump labels,
       according to lambda-the-ultimate philosophy) are first-class
       entities.  In a certain sense, this makes the control-flow graph
-      of a Scheme program a dynamic and not a static entity.</p>
+      of a Scheme program a dynamic and not static entity.</p>
 
     <p>The CFG language described in this SRFI, on the other hand,
       describes a static control-flow graph.  For the applications
       where this is sufficient, this has the advantage that the
       control-flow graph can be readily statically reasoned about,
-      allowing in particular to define variable scope in terms of
+      allowing one, in particular, to define variable scope in terms of
       it.</p>
 
     <p>The CFG language itself is useful for describing iterative and
-      recursive algorithms clearer than it is possible in the
+      recursive algorithms more clearly than it is possible in the
       Scheme language through tail calls and (multiple) return values.
       Its main raison d'être, however, is that more specialized languages
       like that of a loop facility can be easily built on top of
@@ -158,8 +158,8 @@
       goto.  His first point is that this implies that it is not the
       right tool to write down iterative algorithms in a high-level
       fashion.  This fact has stimulated the search for loop
-      facilities allowing to express iterative algorithms more
-      abstractly and more composably.  His second point is that like
+      facilities allowing one to express iterative algorithms more
+      abstractly and more composably.  His second point is that just as
       the scoping of variables is well-defined in the Scheme
       language, a well-defined model of (loop) variable scoping is
       needed for loop facilities as well.  For this, he formulates a
@@ -171,9 +171,9 @@
       iterative but also recursive algorithms is a new invention in
       this SRFI.  This addresses a third perceived shortcoming of the
       Scheme language.  Recursive algorithms in Scheme are based on
-      that Scheme procedures return values, possibly multiple ones.
+      the fact that Scheme procedures return values, possibly multiple ones.
       However, as soon as more than one value needs to be returned and
-      each recursion step does only need to modify one of them, a
+      each recursion step only needs to modify one of them, a
       position-only identification of return values becomes unclear
       and leads to repetition of code.  Instead, the CFG language in
       this SRFI gives names to intermediate results and allows
@@ -301,7 +301,7 @@
 
     <p>When a pending set is <dfn>materialized</dfn> with a CFG block
       as its <dfn>tail</dfn>, the pairs of CFG locations and CFG
-      blocks of the pending set are ordered non-determinalistally.  In
+      blocks of the pending set are ordered non-deterministically.  In
       the CFG location of each pair, the CFG block of the following
       pair is then stored.  In the CFG location of the last pair, the
       tail CFG block is stored.  For each CFG block in the list of
@@ -364,7 +364,7 @@
 
     <p>The simplest <code>cfg</code> expression just halts and returns
     some value(s) (the <code>halt</code> and the other cfg terms are
-    describes in the next subsection):</p>
+    described in the next subsection):</p>
 
     <pre class=example>(cfg (halt) 'done)<span class=result>done</span></pre>
 
@@ -431,8 +431,8 @@
     <pre class="example">(cfg (labels ([f (execute
                      (lambda (e1 e2)
                        (if (> x 6)
-                                              (e1)
-                                              (e2 (+ x 1) (* a x))))
+                           (e1)
+                           (e2 (+ x 1) (* a x))))
                    [() (finally (res) a (halt))]
                    [(x a) (call f)])])
        (bind [(x 1) (a 1)] (call f)))
@@ -454,7 +454,7 @@
            (call c)))
     (list a b)))<span class=result>(outer outer)</span></pre>
 
-    <p>(<code>Label*</code> CFG terms does not allow loops
+    <p>(<code>Label*</code> CFG terms do not allow loops
       as <code>labels</code> CFG terms but <code>permute</code>
       sequences carry forward across calls to labels introduced
       by <code>label*</code>.)</p>
@@ -912,7 +912,7 @@
       SRFI.</p>
 
     <p>It was Jens Axel Søgaard who reminded me of Olin Shiver's
-      paper, which I had once read but then forgotten about it.</p>
+      paper, which I had once read but then forgotten about.</p>
 
     <h2 id="copyright">Copyright</h2>
     <p>&copy; 2022  Marc Nieper-Wißkirchen.</p>
