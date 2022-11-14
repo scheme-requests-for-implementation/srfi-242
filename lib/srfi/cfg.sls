@@ -25,7 +25,7 @@
 
 (library (srfi cfg)
   (export cfg call execute finally halt label* labels
-          indep permute
+          bind permute
 	  define-cfg-label define-cfg-label*
           define-cfg-syntax define-cfg-syntax*)
   (import (except (srfi cfg primitive) label* permute)

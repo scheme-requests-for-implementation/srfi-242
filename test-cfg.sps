@@ -184,7 +184,7 @@
                            (halt)))
                     x))))
 
-(define-cfg-syntax bind
+(define-cfg-syntax simple-bind
   (lambda (stx)
     (syntax-case stx ()
       [(_ [(id init) ...] cfg)
@@ -195,20 +195,20 @@
 
 (assert (equal? 27
                 (let ([x 26])
-                  (cfg (bind [(x (fx+ x 1))] (finally (x) x (halt)))
+                  (cfg (simple-bind [(x (fx+ x 1))] (finally (x) x (halt)))
                     x))))
 
 (assert (equal? '30
-                (cfg (bind [(x 10)] (finally (y) x (finally (x) (+ x 20) (halt))))
+                (cfg (simple-bind [(x 10)] (finally (y) x (finally (x) (+ x 20) (halt))))
                   y)))
 
 (assert (equal? '(49 (1 . 28) (3 . (1 . 28)) (5 . (1 . 28)))
                 (let ([x 28])
                   (cfg (permute
                            ([l (permute
-                                   [(l (bind [(x (cons 1 x))] (call l)))]
-                                 (bind [(z (cons 3 x))] (call l)))])
-                         (bind [(u (cons 5 x))]
+                                   [(l (simple-bind [(x (cons 1 x))] (call l)))]
+                                 (simple-bind [(z (cons 3 x))] (call l)))])
+                         (simple-bind [(u (cons 5 x))]
                                (finally (x) (list 49 x z u) (halt))))
                     x))))
 
@@ -217,15 +217,15 @@
                   (cfg (permute
                            ([l (permute
                                    ([l (permute
-                                           [(l (bind [(x (cons 1 x))] (call l)))]
-                                         (bind [(z (cons 3 x))] (call l)))])
-                                 (bind [(u (cons 5 x))] (call l)))])
+                                           [(l (simple-bind [(x (cons 1 x))] (call l)))]
+                                         (simple-bind [(z (cons 3 x))] (call l)))])
+                                 (simple-bind [(u (cons 5 x))] (call l)))])
                          (finally (x) (list x z u) (halt)))
                     x))))
 
 (assert (equal? '50
                 (cfg (permute
-                         ([l (bind [(z 50)] (call l))]
+                         ([l (simple-bind [(z 50)] (call l))]
                           [l (call l)])
                        (finally (x) z (halt)))
                   x)))
@@ -235,17 +235,17 @@
                   (cfg (permute
                            ([l (permute
                                    ([l (permute
-                                           [(l (bind [(x (cons 1 x))] (call l)))
-                                            (l (bind [(y (cons 2 x))] (call l)))]
-                                         (bind [(z (cons 3 x))] (call l)))]
-                                    [l (bind [(w (cons 4 x))] (call l))])
-                                 (bind [(u (cons 5 x))] (call l)))]
-                            [l (bind [(v (cons 6 x))] (call l))])
+                                           [(l (simple-bind [(x (cons 1 x))] (call l)))
+                                            (l (simple-bind [(y (cons 2 x))] (call l)))]
+                                         (simple-bind [(z (cons 3 x))] (call l)))]
+                                    [l (simple-bind [(w (cons 4 x))] (call l))])
+                                 (simple-bind [(u (cons 5 x))] (call l)))]
+                            [l (simple-bind [(v (cons 6 x))] (call l))])
                          (finally (x) (list x y z w u v) (halt)))
                     x))))
 
 (assert (equal? '(2 30)
-                (cfg (bind ([x 1]) (labels ([l (permute ([p (bind ([y 30]) (call p))]
+                (cfg (simple-bind ([x 1]) (labels ([l (permute ([p (simple-bind ([y 30]) (call p))]
                                                          [p (execute
                                                                 (lambda (e1 e2)
                                                                   (if (eqv? x 1)
@@ -266,10 +266,10 @@
                          (halt))
                     x))))
 
-;;; Indep
+;;; Bind
 
 (assert (equal? '((1 2) 4)
-                (cfg (bind ([x 1]) (indep ([x (values x 2)] [(y) (+ x 3)])
+                (cfg (simple-bind ([x 1]) (bind ([x (values x 2)] [(y) (+ x 3)])
                                      (finally (x) (list x y) (halt))))
                   x)))
 
@@ -359,7 +359,7 @@
            res)])))
 
 (assert (equal? 99
-                (permuting (bind ([x 99]) (call p)) x)))
+                (permuting (simple-bind ([x 99]) (call p)) x)))
 
 ;;; More examples from spec
 
@@ -411,7 +411,7 @@
                                               (e2 (+ x 1) (* a x))))
                                       [() (finally (res) a (halt))]
                                       [(x a) (call f)])])
-                          (bind [(x 1) (a 1)] (call f)))
+                          (simple-bind [(x 1) (a 1)] (call f)))
                      res)))
 
 (cfg (labels ([f (execute
@@ -421,7 +421,7 @@
                                               (e2 (+ x 1) (* a x))))
                    [() (finally (res) a (halt))]
                    [(x a) (call f)])])
-       (bind [(x 1) (a 1)] (call f)))
+       (simple-bind [(x 1) (a 1)] (call f)))
   res)
 
 (define-cfg-syntax return
@@ -432,27 +432,80 @@
        #'(finally (return-var ...) (values return-var ...) (halt))])))
 
 (assert (equal? 1
-                (cfg (bind ([x 1]) (return x))
+                (cfg (simple-bind ([x 1]) (return x))
                   x)))
 
 (assert (equal? '(outer outer)
                 (let ([x 'outer] [y 'outer])
                   (cfg (label* ([c (permute ([p (finally (y) 'inner
-                                                  (bind ([a x]) (call p)))])
+                                                  (simple-bind ([a x]) (call p)))])
                                      (finally (a) a (halt)))])
                          (permute [(p (finally (b) y
-                                        (bind ([x 'inner]) (call p))))]
+                                        (simple-bind ([x 'inner]) (call p))))]
                            (call c)))
                     (list a b)))))
 
 (let ([x 'outer] [y 'outer])
   (cfg (label* ([c (permute ([p (finally (y) 'inner
-                                  (bind ([a x]) (call p)))])
+                                  (simple-bind ([a x]) (call p)))])
                      (finally (a) a (halt)))])
          (permute [(p (finally (b) y
-                        (bind ([x 'inner]) (call p))))]
+                        (simple-bind ([x 'inner]) (call p))))]
            (call c)))
     (list a b)))
+
+;;; Loop example
+
+(define-cfg-syntax loop
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ n-expr lp-lbl loop-cfg-term body-cfg-term)
+       (identifier? #'lp-lbl)
+       #'(bind ([(n) n-expr])
+           (labels ([lp-lbl
+                     (execute
+                         (lambda (loop done)
+                           (if (zero? n)
+                               (done)
+                               (loop (- n 1))))
+                       [(n) loop-cfg-term]
+                       [() body-cfg-term])])
+             (call lp-lbl)))])))
+
+(assert (equal? 20
+                (cfg
+                    (bind ([(n) 0])
+                      (loop 10 next
+                            (bind ([(n) (+ n 2)])
+                              (call next))
+                            (finally (n) n (halt))))
+                  n)))
+
+(define-cfg-label next)
+
+(define-cfg-syntax loop2
+  (lambda (stx)
+    (syntax-case stx ()
+      [(_ n-expr loop-cfg-term body-cfg-term)
+       #'(bind ([(n) n-expr])
+           (labels ([next
+                     (execute
+                         (lambda (loop done)
+                           (if (zero? n)
+                               (done)
+                               (loop (- n 1))))
+                       [(n) loop-cfg-term]
+                       [() body-cfg-term])])
+             (call next)))])))
+
+(assert (equal? 20
+                (cfg
+                    (bind ([(n) 0])
+                      (loop2 10
+                            (bind ([(n) (+ n 2)])
+                              (call next))
+                            (finally (n) n (halt))))
+                  n)))
 
 ;; Local Variables:
 ;; mode: scheme

@@ -24,7 +24,7 @@
 ;; SOFTWARE.
 
 (library (srfi cfg derived)
-  (export label* indep permute)
+  (export label* bind permute)
   (import (rnrs)
 	  (srfi formals)
           (rename (srfi cfg primitive)
@@ -47,9 +47,9 @@
 
         )))
 
-  (define-cfg-syntax indep
+  (define-cfg-syntax bind
     (lambda (stx)
-      (define who 'indep)
+      (define who 'bind)
       (syntax-case stx ()
 	[(_ ([formals expr] ...) cfg)
 	 (for-all formals? #'(formals ...))
