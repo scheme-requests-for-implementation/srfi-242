@@ -247,7 +247,7 @@
       a <code>halt</code> CFG block is reached.  Then, control flows
       backwards along the edges previously taken, potentially binding
       so-called return variables.  Finally a Scheme expression is
-      evaluted in an environment extended by these bindings and its
+      evaluated in an environment extended by these bindings, and its
       values are returned.</p>
 
     <p>The general form of a <code>cfg</code> expression is</p>
@@ -320,11 +320,11 @@
     <p>where <code><span class=token>procedure
       expression</span></code> is a Scheme expression that must
       evaluate to a procedure accepting as many arguments as there
-      are <code><span class=token>cfg terms</span></code> in
+      are <code><span class=token>cfg term</span></code>s in
       the <code>execute</code> CFG term.  When the forward control
       flow through the CFG reaches an <code>execute</code> CFG block,
-      this procedure is called and should tail-call on of its
-      arguments.  Control-flow then proceeds with the CFG block
+      this procedure is called and should tail-call one of its
+      arguments.  Control flow then proceeds with the CFG block
       described by the corresponding <code><span class=token>cfg
 	  term</span></code>:</p>
 
@@ -414,9 +414,9 @@
       different kind of variables, namely so-called loop variables.
       One can think of loop variables being defined during forward
       control-flow and return variables being defined during
-      backward-flow.  The value, to which a loop variable is bound
+      backward-flow.  The value to which a loop variable is bound
       when control-flow leaves along an edge of
-      an <code>execute</code> CFG Term, is passed as an argument to
+      an <code>execute</code> CFG Term is passed as an argument to
       the tail-called procedure that corresponds to the edge:</p>
 
     <pre class=example>(let ([x 1])
@@ -428,7 +428,7 @@
     y)<span class=result>6</span></pre>
 
     <p>In <code>(+ x 2)</code>, the variable <code>x</code>
-      is <code>let</code> bound to <code>1</code>, the <code>(+ x
+      is <code>let</code>-bound to <code>1</code>, and the <code>(+ x
 	3)</code> the binding as a loop variable to <code>(+ 1 2)</code>
       is visible.</p>
 
@@ -441,7 +441,7 @@
       block pass through a definition of the loop variable, which
       happens along an edge exiting an <code>execute</code> CFG block.</p>
 
-    <p>In the following example, it is obvious that the definitions of
+    <p>In the following example, the definitions of
       the loop variable <code>x</code> do not dominate the expression <code>(+ x 3)</code>:</p>
 
     <pre class=example>(let ([x 1] [y 2])
@@ -479,9 +479,9 @@
       ([<span class=token>formals</span> <span class=token>expression</span>]
       ...) <span class=token>cfg term</span>)</code></p>
 
-    <p>When the forward control flow reaches an <code>bind</code> CFG
-      term, the <code><span class=token>expressions</span></code> are
-      evaluated in the same environment
+    <p>When the forward control flow reaches a <code>bind</code> CFG
+      term, the <code><span class=token>expression</span></code>s are
+      evaluated in the same environment in which
       the <code><span class=token>procedure expression</span></code>
       of an <code>execute</code> CFG game would be evaluated.  Then,
       all formals are bound in parallel and the loop variable bindings
@@ -498,7 +498,7 @@
     (list x y)))<span class=result>(2 1)</span></pre>
 
     <p>In order to construct more interesting examples, we need to be
-      able to introduce loops in your control-flow graphs.  This is
+      able to introduce loops in control-flow graphs.  This is
       possible with the use of <code>labels</code> CFG terms, which have
       the following syntax</p>
 
@@ -510,9 +510,9 @@
     <p>where each <code><span class=token>label</span></code> is an
       identifier.  A <code>labels</code> CFG term binds
       the <code><span class=token>labels</span></code> to
-      the <code><span class=token>cfg terms</span></code>, and this
+      the <code><span class=token>cfg term</span></code>s, and this
       binding is visible within the <code><span class=token>cfg
-      terms</span></code> and the <code><span class=token>body cfg
+      term</span></code>s and the <code><span class=token>body cfg
       term</span></code>, much like the semantics of
       the <code>letrec</code> expression for Scheme code.  When
       (forward) control flow enters a <code>labels</code> CFG
@@ -816,8 +816,8 @@
       can be expressed in the latter as the portable implementation
       shows), a couple of primitive notions have to be introduced,
       that is the grammatical context in which they are used.  Their
-      semantic meaning only follows from the context, in which they
-      are used, below.</p>
+      semantic meaning only follows from the context in which they
+      are used below.</p>
 
     <p><dfn>Loop variables</dfn> are <dfn>defined</dfn> in CFG
       blocks.  A loop variable's <dfn>scope</dfn> is the set of CFG
@@ -835,7 +835,7 @@
       of a Scheme value.</p>
 
     <p>Moreover, a <dfn>pending set</dfn> in the sense of the formal
-      semantics below is a set of pairs each consisting of a CFG
+      semantics below is a set of pairs, each consisting of a CFG
       location and a CFG block.</p>
 
     <p>The following action can be done with pending sets: when a
@@ -878,7 +878,7 @@
       <dd>
 	<p><i>Syntax:</i> <code><span class=token>Cfg
 	term</span></code> is an arbitrary CFG
-	term, <code><span class=token>result expression</span></code>
+	term.  <code><span class=token>Result expression</span></code>
 	is an arbitrary Scheme expression.</p>
 
 	<p><i>Semantics:</i> A <code>cfg</code> expression is
@@ -900,8 +900,8 @@
     </dl>
 
     <p>The simplest <code>cfg</code> expression just halts and returns
-    some value(s) (the <code>halt</code> and the other cfg terms are
-    described in the next subsection):</p>
+    some value(s).  (The <code>halt</code> and the other cfg terms are
+    described in the next subsection.)  For example:</p>
 
     <pre class=example>(cfg (halt) 'done)<span class=result>done</span></pre>
 
@@ -946,7 +946,7 @@
            [(a) (halt)]))
       res))<span class=result>outer</span></pre>
 
-    <p>And due to return variable scoping, the
+    <p>And due to return-variable scoping, the
     first <code>finally</code> cannot simply be left out because the
     entry block would no longer post-dominate an introduction of
       the <code><var>res</var></code> return variable:</p>
@@ -961,9 +961,9 @@
 
     <p>Loop variables are called loop variables because the main
       reason for the CFG language is that it allows writing loops.
-      This can be done with <code>labels</code> CFG terms (here, we
-      also use the <code>bind</code> CFG term to easily bind loop
-      variables):</p>
+      This can be done with <code>labels</code> CFG terms.  Here, we
+      also use the <code>bind</code> CFG term to bind loop
+      variables easily:</p>
 
     <pre class="example">(cfg (labels ([f (execute
                      (lambda (e1 e2)
@@ -992,7 +992,7 @@
     (list a b)))<span class=result>(outer outer)</span></pre>
 
     <p>(<code>Label*</code> CFG terms do not allow loops
-      as <code>labels</code> CFG terms but <code>permute</code>
+      as <code>labels</code> CFG terms, but <code>permute</code>
       sequences carry forward across calls to labels introduced
       by <code>label*</code>.)</p>
 
@@ -1019,7 +1019,7 @@
       <dd>
 	<p>When an <code>execute</code> CFG term is evaluated in
 	  an environment and within a pending set,
-	  the <code><span class="token">cfg terms</span></code>
+	  the <code><span class="token">cfg term</span></code>s
 	  are evaluated to CFG blocks in no particular order in the
 	  environment, each within an empty pending set.  The pending
 	  set in which the <code>execute</code> CFG term is being
@@ -1028,14 +1028,14 @@
 
 	<p>When the <var>cfg block</var> is later called with a CFG
 	  state, the environment of the surrounding <code>cfg</code>
-	  expression is extended by binding each loop variable, in
-	  whose scope the <code>execute</code> CFG term is, to a fresh
+	  expression is extended by binding each loop variable in
+	  whose scope the <code>execute</code> CFG term occurs to a fresh
 	  location holding the value to which it is bound in the CFG
 	  state.  The <code><span class=token>procedure
 	  expression</span></code> is then evaluated in this extended
 	  environment to yield a procedure value.  This procedure is
 	  then tail-called with as many procedure arguments as there
-	  are <code><span class="token">cfg terms</span></code>.  The
+	  are <code><span class="token">cfg term</span></code>s.  The
 	  procedure should call one of the arguments exactly once and
 	  the call should be a tail call.  In the continuation of this
 	  tail call, the CFG state is then extended by binding the
@@ -1047,7 +1047,7 @@
 	  resulting CFG state is returned.</p>
 
 	<p>The <var>CFG block</var> has the CFG blocks resulting from evaluation
-	  of the <code><span class=token>cfg terms</span></code> as
+	  of the <code><span class=token>cfg term</span></code>s as
 	  successors.</p>
 
 	<p>The variables of each <code>formals</code> are introduced
@@ -1059,7 +1059,7 @@
       <dd>
 	<p>When a <code>(halt)</code> CFG term is evaluated, the
 	  pending set is materialized with a new <var>CFG block</var> as
-	  its tail and the materialization is returned.</p>
+	  its tail, and the materialization is returned.</p>
 
 	<p>When the <var>CFG block</var> is called with a CFG state,
 	  it simply returns an empty CFG state.</p>
@@ -1077,14 +1077,14 @@
           extended by binding
           each <code><span class="token">label</span></code> to a CFG
           location initially holding an invalid CFG block.
-          The <code><span class=token>cfg terms</span></code> and
+          The <code><span class=token>cfg term</span></code>s and
           the <code><span class=token>body cfg term</span></code>
           are then evaluated in an unspecified order in this extended
           environment.  In this environment,
-          the <code><span class=token>cfg terms</span></code> are
+          the <code><span class=token>cfg term</span></code>s are
           evaluated within an empty pending set and
           the <code><span class=token>body cfg term</span></code>
-          is evaluated within the pending set, in which
+          is evaluated within the pending set in which
           the <code>labels</code> CFG term is being evaluated.
           For each <code><span class=token>label</span></code>, the
           CFG block resulting from evaluating the
@@ -1096,7 +1096,7 @@
 
         <p>When the CFG block returned by the <code>labels</code> CFG
           term is later called with a CFG state, the CFG block resulting
-          from evaluation
+          from evaluating
           the <code><span class=token>body cfg term</span></code> is
           tail-called with the CFG state and the resulting CFG state is
           returned.</p>
@@ -1118,9 +1118,9 @@
 
         <p>When the CFG block returned by the <code>labels</code> CFG
           term is later called with a CFG state, the CFG block resulting
-          from evaluation
+          from evaluating
           the <code><span class=token>body cfg term</span></code> is
-          called with the CFG state and the resulting CFG state is
+          called with the CFG state, and the resulting CFG state is
           returned.</p>
 
 	<p>It is a syntax or undefined violation if
@@ -1154,12 +1154,12 @@
           environment within a pending set, the location to which
           the <code><span class=token>dynamic label</span></code> is
           bound is looked up and remembered.  The pending set is then
-          materialized with a new <var>CFG block</var> as its tail and
+          materialized with a new <var>CFG block</var> as its tail, and
           the materialization is returned.
 
         <p>When the CFG block returned by the <code>call</code> CFG
           term is called with a CFG state, the CFG block stored in the
-          remembered location is tail-called with the CFG state and the
+          remembered location is tail-called with the CFG state, and the
           resulting CFG is returned.</p>
 
         <p>The <var>CFG block</var> returned by the <code>call</code> CFG term
@@ -1183,22 +1183,22 @@
 
         <p>When the <var>CFG block</var> is later called with a CFG
           state, the environment of the surrounding <code>cfg</code>
-          expression is extended by binding each loop variable, in
-          whose scope the CFG block is, to a fresh location holding
+          expression is extended by binding each loop variable in
+          whose scope the CFG block occurs to a fresh location holding
           the value to which it is bound in the CFG state.  Then, the
           CFG block resulting from evaluation of
           the <code>cfg term</code> is called.  The extended
           environment is then further extended by binding each return
-          variable, in whose scope the CFG block returned by
-          the <code>finally</code> CFG term is, to a fresh
+          variable in whose scope the CFG block returned by
+          the <code>finally</code> CFG term occurs to a fresh
           location holding the value to which it is bound in the
           returned CFG state.  Then,
           the <code><span token=class>expression</span></code> is
-          evaluated in the doubly extended environment and the CFG
+          evaluated in the doubly extended environment, the CFG
           state received from call the <code><span class=token>cfg
           term</span></code> is extended by binding
           the <code><span class=token>formals</span></code> to the
-          values receving from evaluating
+          values receiving from evaluating
           the <code><span token=class>expression</span></code>, and
           the extended CFG state is then returned.</p>
 
@@ -1300,15 +1300,15 @@
 	  evaluated to CFG block in the environment within an empty
 	  pending set.  The pending set in which
 	  the <code>execute</code> CFG term is being evaluated is
-	  then materialized with a new <var>CFG block</var> as its tail
+	  then materialized with a new <var>CFG block</var> as its tail,
 	  and the materialization is returned.</p>
 
 	<p>When the <var>cfg block</var> is later called with a CFG
 	state, the environment of the surrounding <code>cfg</code>
-	expression is extended by binding each loop variable, in whose
-	scope the <code>bind</code> cfg term is, to a fresh location
+	expression is extended by binding each loop variable in whose
+	scope the <code>bind</code> cfg term occurs to a fresh location
 	holding the value to which it is bound in the CFG state.
-	The <code><span class=token>expressions</span></code> are then
+	The <code><span class=token>expression</span></code>s are then
 	evaluated in an unspecified order in this extended environment
 	to yield values for
 	each <code><span class=token>expression</span></code>.  The
@@ -1317,7 +1317,7 @@
 	variables to the return values of the corresponding
 	evaluation, and the CFG block resulting from the evaluation
 	of <code><span class=token>cfg term</span></code> is then
-	  tail-called with the extended CFG state and the resulting CFG state
+	  tail-called with the extended CFG state, and the resulting CFG state
 	  is returned.
 	</p>
 
@@ -1363,11 +1363,11 @@
       </dd>
 
       <!-- define-cfg-syntax* -->
-      <dt class=syntax><code>(define-cfg-syntax <span class="token">cfg keyword</span> <span class="token">transformer expression</span>)</code></dt>
+      <dt class=syntax><code>(define-cfg-syntax* <span class="token">cfg keyword</span> <span class="token">transformer expression</span>)</code></dt>
       <dd>
 	<p>As <code>define-cfg-syntax</code> except that <code>cfg
 	    keyword</code> must be bound.  <code>Define-cfg-syntax*</code>
-	  does not change the meaning of <code>keyword</code> outside <code><span class=token>cfg terms</span></code>.
+	  does not change the meaning of <code>keyword</code> outside <code><span class=token>cfg term</span></code>s.
 	</p>
       </dd>
 
@@ -1386,7 +1386,7 @@
       <dt class=syntax><code>(define-cfg-label* <span class="token">identifier</span>)</code></dt>
       <dd>
 	<p>As <code>define-cfg-label</code> except that <code>identifier</code> must be bound.  <code>Define-cfg-label*</code>
-	  does not change the meaning of <code>identifier</code> outside <code><span class=token>cfg terms</span></code>.
+	  does not change the meaning of <code>identifier</code> outside <code><span class=token>cfg term</span></code>s.
 	</p>
       </dd>
     </dl>
