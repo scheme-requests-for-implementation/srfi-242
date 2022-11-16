@@ -5,7 +5,7 @@
     <title>SRFI 242: The CFG Language</title>
     <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
     <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
-    <meta name="viewport" content="width=device-width, initial-scale=1"></head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       body
       {
@@ -102,7 +102,7 @@
       {
 	  display: inline-block;
       }
-    </style>
+    </style></head>
   <body>
     <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI surfboard logo" /></a>242: The CFG Language</h1>
 
@@ -352,7 +352,7 @@
 
     <p><code>Execute</code> CFG terms are used to create CFGs with
       branches.  For this, more than <code><span class=token>cfg
-	  term<span></code> has to be provided.  Consider the following example:</p>
+      term</span></code> has to be provided.  Consider the following example:</p>
 
     <pre class=example>(let ([x 1] [y 2])
   (cfg
@@ -517,7 +517,7 @@
       the <code>letrec</code> expression for Scheme code.  When
       (forward) control flow enters a <code>labels</code> CFG
       fragment, the control flow is passed to the CFG block described
-      by the <code><span class=token>body cfg term<span></code>.</p>
+      by the <code><span class=token>body cfg term</span></code>.</p>
 
     <p>Control can flow to the CFG block described by
       a <code><span class=token>cfg term</span></code>
@@ -1193,13 +1193,13 @@
           the <code>finally</code> CFG term occurs to a fresh
           location holding the value to which it is bound in the
           returned CFG state.  Then,
-          the <code><span token=class>expression</span></code> is
+          the <code><span class=token>expression</span></code> is
           evaluated in the doubly extended environment, the CFG
           state received from call the <code><span class=token>cfg
           term</span></code> is extended by binding
           the <code><span class=token>formals</span></code> to the
           values receiving from evaluating
-          the <code><span token=class>expression</span></code>, and
+          the <code><span class=token>expression</span></code>, and
           the extended CFG state is then returned.</p>
 
         <p>The <var>CFG block</var> returned by
