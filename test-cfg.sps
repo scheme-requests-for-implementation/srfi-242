@@ -507,6 +507,19 @@
                             (finally (n) n (halt))))
                   n)))
 
+;;; Examples from the spec
+
+(assert (equal? '(2 5)
+                (let ([x 1] [y 2])
+                  (cfg
+                      (finally (y) (+ x 3)
+                        (execute
+                            (lambda (e)
+                              (set! x y)
+                              (e))
+                          [() (halt)]))
+                    (list x y)))))
+
 ;; Local Variables:
 ;; mode: scheme
 ;; End:
