@@ -292,7 +292,7 @@
       we have:</p>
 
     <pre class=example>(cfg
-    (finally (x . y) (list 1 2 3)
+    (finally (x . y) (values 1 2 3)
       (halt))
   (list x y)<span class=result>(1 (2 3))</span></pre>
 
@@ -340,7 +340,7 @@
               (set! x y)
               (e))
           [() (halt)]))
-    (list x y)))<span class=result>(3 6)</span></pre>
+    (list x y)))<span class=result>(2 5)</span></pre>
 
     <p>In this example, the forward control-flow passes through
       the <code>finally</code> CFG block before it reaches
@@ -370,8 +370,8 @@
     <p>Here, the control flow exiting the <code>execute</code> CFG
       block can proceed along two possible edges, <code>e1</code>
       and <code>e2</code> depending on the parity of <code>y</code> in
-      this example.  It stands out the value of the example expression
-      is not <code>13</code> as one might have expected
+      this example.  It stands out that the value of the example
+      expression is not <code>13</code> as one might have expected
       but <code>11</code>.  In other words, the binding
       of <code>x</code> that is visible in <code>(+ x 10)</code> is
       the <code>let</code> binding of <code>x</code> and not the
@@ -432,7 +432,7 @@
     y)<span class=result>6</span></pre>
 
     <p>In <code>(+ x 2)</code>, the variable <code>x</code>
-      is <code>let</code>-bound to <code>1</code>, and the <code>(+ x
+      is <code>let</code>-bound to <code>1</code>, and in <code>(+ x
 	3)</code> the binding as a loop variable to <code>(+ 1 2)</code>
       is visible.</p>
 
@@ -455,7 +455,7 @@
             (if (odd? y) (e1 5) (e2)))
         [(x) (finally (y) (+ x 2) (halt))]
         [() (finally (y) (+ x 3) (halt))])
-    x))<span class=result>4</span></pre>
+    y))<span class=result>4</span></pre>
 
     <p>The expressions in the <code>finally</code> CFG terms are
       evaluated with loop and return variables in scope.  If a loop
@@ -487,7 +487,7 @@
       term, the <code><span class=token>expression</span></code>s are
       evaluated in the same environment in which
       the <code><span class=token>procedure expression</span></code>
-      of an <code>execute</code> CFG game would be evaluated.  Then,
+      of an <code>execute</code> CFG term would be evaluated.  Then,
       all formals are bound in parallel and the loop variable bindings
       become visible in the <code><span class=token>cfg
       term</span></code>, with which the forward control flow
@@ -581,8 +581,8 @@
     <p>The semantics of <code>label*</code> can be explained through
       the following rule: Replace all occurrences
       of <code>(call <span class=token>label</span>)</code>
-      in <code><span class=token>body cfg</span></code>
-      by <code><span class=token>body cfg</span></code> when the
+      in <code><span class=token>body cfg term</span></code>
+      by <code><span class=token>cfg term</span></code> when the
       binding of the
       corresponding <code><span class=token>label</span></code> is not
       (lexically) shadowed by another label binding.</p>
@@ -601,16 +601,18 @@
     term</span>)</code></p>
 
     <p>When the forward control flow enters a CFG block described by
-      a <code>permute</code> CFG term, control passes to the CFG block
-      described by the first <code><span class=token>cfg
-      term</span></code>.  Within the lexical scope of this CFG term,
+      a <code>permute</code> CFG term, the CFG blocks describd by
+      the <code><span class=token>cfg terms</span></code> together
+      with their <code><span class=token>labels</span></code> are
+      dynamically permutated and control then passes to the the first CFG block
+      Within the lexical scope of this CFG term,
       the corresponding <code><span class=token>label</span></code> is
       bound so that when it is called, control proceeds to the
-      second <code><span class=token>cfg term</span></code> and so on
-      until the final <code><span class=token>cfg term</span></code>
-      is reached whose accompanying label is bound so that when call,
+      then second <code><span class=token>cfg term</span></code> and so on
+      until the then final <code><span class=token>cfg term</span></code>
+      is reached whose accompanying label is bound so that when called,
       control finally proceeds to the <code><span class=token>body cfg
-          term</span></code> term.</p>
+      term</span></code> term.</p>
 
     <pre class=example>(cfg
     (permute ([p (bind ([(x) 10])
@@ -621,9 +623,10 @@
   z)<span class=result>(10 20)</span></pre>
 
     <p>So far, the <code>permute</code> CFG term just looks like an
-      inside-out <code>label*</code> form.  Its purpose comes from
-      some non-determinism it introduces.  In the above example, the
-      sequencing of the two <code>bind</code> CFG terms is not
+      inside-out <code>label*</code> form up to the permutation that
+      is involved.  The <code>permute</code> CFG term's purpose comes
+      from some non-determinism it introduces.  In the above example,
+      the sequencing of the two <code>bind</code> CFG terms is not
       determined, i.e. whether the forward control-flow first passes
       through the lexically first <code>bind</code> CFG term and then
       through the lexically second, or vice versa.  In the above
@@ -640,7 +643,7 @@
   (cfg
       (permute ([p (bind ([(x) 2])
                      (call p))]
-                [p (bind ([(y) (x)])
+                [p (bind ([(y) x])
                      (call p))])
         (finally (z) (list x y) (halt)))
     z))<span class=result>(2 1)</span></pre>
@@ -686,11 +689,11 @@
 
     <p>When the expander processes a <code>cfg</code> form, it expands
       CFG macro uses, which look like Scheme macro uses except for
-      that a <code><span class=token>cfg keyword</span></code> are
-      used instead of a
-      (Scheme) <code><span class=token>keyword</span></code>, using
-      the same algorithm as Scheme macro uses are expanded.  An
-      example is worth a thousand words:</p>
+      that a <code><span class=token>cfg keyword</span></code> is used
+      instead of a
+      (Scheme) <code><span class=token>keyword</span></code>.  CFG
+      macros are expanded by the usual Scheme macro
+      expansion algorithm.  An example is worth a thousand words:</p>
 
     <pre class=example>(define-cfg-syntax loop
   (lambda (stx)
@@ -834,7 +837,7 @@
       return variable is introduced.</p>
 
     <p>The formal description of the various CFG terms uses the notion
-    of a <dfn>CFG locations</dfn>, which is similarly to a location in
+    of <dfn>CFG locations</dfn>, which is similarly to a location in
     the Scheme semantics, except that it can hold a CFG block instead
       of a Scheme value.</p>
 
@@ -1030,7 +1033,7 @@
 	  evaluated is then materialized with a new <var>CFG block</var>
 	  as its tail and the materialization is returned.</p>
 
-	<p>When the <var>cfg block</var> is later called with a CFG
+	<p>When the <var>CFG block</var> is later called with a CFG
 	  state, the environment of the surrounding <code>cfg</code>
 	  expression is extended by binding each loop variable in
 	  whose scope the <code>execute</code> CFG term occurs to a fresh
@@ -1307,10 +1310,10 @@
 	  then materialized with a new <var>CFG block</var> as its tail,
 	  and the materialization is returned.</p>
 
-	<p>When the <var>cfg block</var> is later called with a CFG
+	<p>When the <var>CFG block</var> is later called with a CFG
 	state, the environment of the surrounding <code>cfg</code>
 	expression is extended by binding each loop variable in whose
-	scope the <code>bind</code> cfg term occurs to a fresh location
+	scope the <code>bind</code> CFG term occurs to a fresh location
 	holding the value to which it is bound in the CFG state.
 	The <code><span class=token>expression</span></code>s are then
 	evaluated in an unspecified order in this extended environment
@@ -1369,8 +1372,8 @@
       <!-- define-cfg-syntax* -->
       <dt class=syntax><code>(define-cfg-syntax* <span class="token">cfg keyword</span> <span class="token">transformer expression</span>)</code></dt>
       <dd>
-	<p>As <code>define-cfg-syntax</code> except that <code>cfg
-	    keyword</code> must be bound.  <code>Define-cfg-syntax*</code>
+	<p>As <code>define-cfg-syntax</code> except that <code><span class=token>cfg
+	    keyword</span></code> must be bound.  <code>Define-cfg-syntax*</code>
 	  does not change the meaning of <code>keyword</code> outside <code><span class=token>cfg term</span></code>s.
 	</p>
       </dd>
@@ -1454,6 +1457,10 @@
 
     <p>It was Jens Axel Søgaard who reminded me of Olin Shiver's
       paper, which I had once read but then forgotten about.</p>
+
+    <p>During the draft period, Wolfgang Corcoran-Mathe read the
+      specification thoroughly and found a number of small bugs and
+      inconsistencies, which could then be fixed.</p>
 
     <h2 id="copyright">Copyright</h2>
     <p>&copy; 2022  Marc Nieper-Wißkirchen.</p>

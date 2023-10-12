@@ -507,6 +507,45 @@
                             (finally (n) n (halt))))
                   n)))
 
+;;; Examples from the spec
+
+(assert (equal? '(2 5)
+                (let ([x 1] [y 2])
+                  (cfg
+                      (finally (y) (+ x 3)
+                        (execute
+                            (lambda (e)
+                              (set! x y)
+                              (e))
+                          [() (halt)]))
+                    (list x y)))))
+
+(assert (equal? '(1 (2 3))
+                (cfg
+                    (finally (x . y) (values 1 2 3)
+                      (halt))
+                  (list x y))))
+
+(assert (equal? 4
+                (let ([x 1] [y 2])
+                  (cfg
+                      (execute
+                          (lambda (e1 e2)
+                            (if (odd? y) (e1 5) (e2)))
+                        [(x) (finally (y) (+ x 2) (halt))]
+                        [() (finally (y) (+ x 3) (halt))])
+                    y))))
+
+(assert (equal? '(2 1)
+                (let ([x 1])
+                  (cfg
+                      (permute ([p (bind ([(x) 2])
+                                         (call p))]
+                                [p (bind ([(y) x])
+                                         (call p))])
+                        (finally (z) (list x y) (halt)))
+                    z))))
+
 ;; Local Variables:
 ;; mode: scheme
 ;; End:
