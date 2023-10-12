@@ -601,16 +601,18 @@
     term</span>)</code></p>
 
     <p>When the forward control flow enters a CFG block described by
-      a <code>permute</code> CFG term, control passes to the CFG block
-      described by the first <code><span class=token>cfg
-      term</span></code>.  Within the lexical scope of this CFG term,
+      a <code>permute</code> CFG term, the CFG blocks describd by
+      the <code><span class=token>cfg terms</span></code> together
+      with their <code><span class=token>labels</span></code> are
+      dynamically permutated and control then passes to the the first CFG block
+      Within the lexical scope of this CFG term,
       the corresponding <code><span class=token>label</span></code> is
       bound so that when it is called, control proceeds to the
-      second <code><span class=token>cfg term</span></code> and so on
-      until the final <code><span class=token>cfg term</span></code>
+      then second <code><span class=token>cfg term</span></code> and so on
+      until the then final <code><span class=token>cfg term</span></code>
       is reached whose accompanying label is bound so that when call,
       control finally proceeds to the <code><span class=token>body cfg
-          term</span></code> term.</p>
+      term</span></code> term.</p>
 
     <pre class=example>(cfg
     (permute ([p (bind ([(x) 10])
@@ -621,9 +623,10 @@
   z)<span class=result>(10 20)</span></pre>
 
     <p>So far, the <code>permute</code> CFG term just looks like an
-      inside-out <code>label*</code> form.  Its purpose comes from
-      some non-determinism it introduces.  In the above example, the
-      sequencing of the two <code>bind</code> CFG terms is not
+      inside-out <code>label*</code> form up to the permutation that
+      is involved.  The <code>permute</code> CFG term's purpose comes
+      from some non-determinism it introduces.  In the above example,
+      the sequencing of the two <code>bind</code> CFG terms is not
       determined, i.e. whether the forward control-flow first passes
       through the lexically first <code>bind</code> CFG term and then
       through the lexically second, or vice versa.  In the above
