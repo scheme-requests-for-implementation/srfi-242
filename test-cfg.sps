@@ -520,6 +520,12 @@
                           [() (halt)]))
                     (list x y)))))
 
+(assert (equal? '(1 (2 3))
+                (cfg
+                    (finally (x . y) (values 1 2 3)
+                      (halt))
+                  (list x y))))
+
 ;; Local Variables:
 ;; mode: scheme
 ;; End:

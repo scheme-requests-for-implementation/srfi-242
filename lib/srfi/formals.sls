@@ -58,7 +58,7 @@
 	 (map proc #'(var ...))]
 	[(var1 ... . var2)
 	 (for-all identifier? #'(var1 ... var2))
-	 (cons (map proc #'(var1 ...)) (proc #'var2))]
+	 (append (map proc #'(var1 ...)) (proc #'var2))]
 	[_ (assert #f)])))
 
 
