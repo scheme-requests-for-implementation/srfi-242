@@ -455,7 +455,7 @@
             (if (odd? y) (e1 5) (e2)))
         [(x) (finally (y) (+ x 2) (halt))]
         [() (finally (y) (+ x 3) (halt))])
-    x))<span class=result>4</span></pre>
+    y))<span class=result>4</span></pre>
 
     <p>The expressions in the <code>finally</code> CFG terms are
       evaluated with loop and return variables in scope.  If a loop
@@ -643,7 +643,7 @@
   (cfg
       (permute ([p (bind ([(x) 2])
                      (call p))]
-                [p (bind ([(y) (x)])
+                [p (bind ([(y) x])
                      (call p))])
         (finally (z) (list x y) (halt)))
     z))<span class=result>(2 1)</span></pre>
