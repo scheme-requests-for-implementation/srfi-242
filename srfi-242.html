@@ -130,6 +130,33 @@
       be seamlessly embedded in the Scheme language.  Complex CFG
       terms can be composed from simple CFG terms.</p>
 
+    <h2>Table of contents</h2>
+    <ul>
+      <li>
+        <a href="#rationale">Rationale</a>
+        <ul>
+          <li><a href="#examples">Examples</a></li>
+          <li><a href="#using-the-cfg-form">Using the cfg form</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#specification">Specification</a>
+        <ul>
+          <li><a href="#cfgs">CFGs</a></li>
+          <li><a href="#preliminary-notions">Preliminary notions</a></li>
+          <li><a href="#entry-format">Entry format</a></li>
+          <li><a href="#cfg-expressions">CFG Expressions</a></li>
+          <li><a href="#primitive-cfg-terms">Primitive CFG terms</a></li>
+          <li><a href="#tail-contexts">Tail contexts</a></li>
+          <li><a href="#non-determinism">Non-determinism</a></li>
+          <li><a href="#derived-cfg-terms">Derived CFG terms</a></li>
+          <li><a href="#cfg-syntax-and-label-definitions">CFG syntax and label definitions</a></li>
+        </ul>
+      </li>
+      <li><a href="#implementation">Implementation</a></li>
+      <li><a href="#acknowledgements">Acknowledgements</a></li>
+    </ul>
+
     <h2 id="issues">Issues</h2>
 
     <p>There are none at present.</p>
@@ -193,7 +220,7 @@
       facility built on the CFG language defined in this SRFI in the
       future.</p>
 
-    <h3>Examples</h3>
+    <h3 id="examples">Examples</h3>
 
     <p>The following expression evaluates to an (iterative) procedure that takes a
       list of integers and returns two values, the number of even and
@@ -245,7 +272,7 @@
         (execute (lambda (start) (start n*)) [(n*) (call f)]))
     (values e* o*)))</pre>
 
-    <h3>Using the <code>cfg</code> form</h3>
+    <h3 id="using-the-cfg-form">Using the <code>cfg</code> form</h3>
 
     <p>A <code>cfg</code> expression lets control flow along the edges
       of a control-flow graph (CFG) defined by the <code>cfg</code>
@@ -779,7 +806,7 @@
       misunderstood as a gentle introduction, which was given in the
       previous section.</p>
 
-    <h3>CFGs</h3>
+    <h3 id="cfgs">CFGs</h3>
 
     <p>The following definitions are standard, but are included here
       for the sake of completeness.</p>
@@ -819,7 +846,7 @@
       block.  Here, a <dfn>strict post-dominator</dfn> of a block is a
       post-dominator that is not the block itself.</p>
 
-    <h3>Preliminary notions</h3>
+    <h3 id="preliminary-notions">Preliminary notions</h3>
 
     <p>In order to describe the computation model of the CFG language,
       which is not the same computation model underlying Scheme (but
@@ -872,14 +899,14 @@
       is again a CFG state.  Evaluation of CFG terms happens during
       expand-time, the calling of CFG terms during runtime.</p>
 
-    <h3>Entry format</h3>
+    <h3 id="entry-format">Entry format</h3>
 
     <p>Each entry is of one of two categories, &ldquo;syntax&rdquo; or
       &ldquo;cfg syntax&rdquo;.  The first category is as in
       R<sup>6</sup>RS and R<sup>7</sup>RS, while an entry of the second
       category describes a syntactic construct in the CFG language.</p>
 
-    <h3>CFG Expressions</h3>
+    <h3 id="cfg-expressions">CFG Expressions</h3>
 
     <dl class=entries>
 
@@ -1006,7 +1033,7 @@
       sequences carry forward across calls to labels introduced
       by <code>label*</code>.)</p>
 
-    <h3>Primitive CFG terms</h3>
+    <h3 id="primitive-cfg-terms">Primitive CFG terms</h3>
 
     <p>The following entries describe the primitive CFG terms.
       A <code><span class=token>label</span></code> is an identifier.
@@ -1243,13 +1270,13 @@
       </dd>
     </dl>
 
-    <h3>Tail contexts</h3>
+    <h3 id="tail-contexts">Tail contexts</h3>
 
     <p>If a <code>cfg</code> expression is in tail context,
       the <code><span class=token>result expression</span></code> is in
       tail context as well.</p>
 
-    <h3>Non-determinism</h3>
+    <h3 id="non-determinism">Non-determinism</h3>
 
     <p>Through <code>permute</code> CFG terms, non-trivial pending
       sets are generated.  Through the non-determinism of
@@ -1262,7 +1289,7 @@
       variable over all possible materializations.
     </p>
 
-    <h3>Derived CFG terms</h3>
+    <h3 id="derived-cfg-terms">Derived CFG terms</h3>
 
     <p>The following entries describe CFG terms that can be converted
       into primitive CFG terms.</p>
@@ -1337,7 +1364,7 @@
       </dd>
     </dl>
 
-    <h3>CFG syntax and label definitions</h3>
+    <h3 id="cfg-syntax-and-label-definitions">CFG syntax and label definitions</h3>
 
     <p>The Scheme syntax described in this section
       are <code><span class=token>definitions</span></code> that may
