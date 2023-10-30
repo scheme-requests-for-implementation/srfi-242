@@ -151,7 +151,7 @@
     <p>The CFG language itself is useful for describing iterative and
       recursive algorithms more clearly than it is possible in the
       Scheme language through tail calls and (multiple) return values.
-      Its main raison d'être, however, is that more specialized languages
+      Its <em>raison d'être</em>, however, is that more specialized languages
       like that of a loop facility can be easily built on top of
       it.</p>
 
@@ -274,7 +274,7 @@
 
     <pre class=example>(cfg (halt) (+ 1 2))<span class=result>3</span></pre>
 
-    <p>as the control-flow along this CFG, which has no edges,
+    <p>as the control flow along this CFG, which has no edges,
       immediately stops, leading on to the evaluation of the return expression.</p>
 
     <p>A <code>finally</code> CFG block is used to bind return
@@ -344,20 +344,20 @@
           [() (halt)]))
     (list x y)))<span class=result>(2 5)</span></pre>
 
-    <p>In this example, the forward control-flow passes through
+    <p>In this example, the forward control flow passes through
       the <code>finally</code> CFG block before it reaches
       the <code>execute</code> block.  The procedure expression is
       evaluated in the environment where <code>x</code> is bound
       to <code>1</code> and <code>y</code> is bound to <code>2</code>.
-      The tail-call to <code>e</code> lets the control flow continue
+      The tail call to <code>e</code> lets the control flow continue
       with the <code>halt</code> CFG block, from where it flows
-      backward.  The backward control-flow passes through
+      backward.  The backward control flow passes through
       the <code>execute</code> CFG block before the <code>(+ x
       3)</code> is evaluated and the return variable <code>y</code> is
       bound to the result <code>6</code>.</p>
 
     <p><code>Execute</code> CFG terms are used to create CFGs with
-      branches.  For this, more than <code><span class=token>cfg
+      branches.  For this, more than one <code><span class=token>cfg
       term</span></code> has to be provided.  Consider the following example:</p>
 
     <pre class=example>(let ([x 1] [y 2])
@@ -371,9 +371,9 @@
 
     <p>Here, the control flow exiting the <code>execute</code> CFG
       block can proceed along two possible edges, <code>e1</code>
-      and <code>e2</code> depending on the parity of <code>y</code> in
+      and <code>e2</code>, depending on the parity of <code>y</code> in
       this example.  It stands out that the value of the example
-      expression is not <code>13</code> as one might have expected
+      expression is not <code>13</code>, as one might have expected,
       but <code>11</code>.  In other words, the binding
       of <code>x</code> that is visible in <code>(+ x 10)</code> is
       the <code>let</code> binding of <code>x</code> and not the
@@ -418,10 +418,10 @@
       the <code><span class=token>formals</span></code> that appear in
       a <code>execute</code> CFG term.  Using these, we can bind a
       different kind of variables, namely so-called loop variables.
-      One can think of loop variables being defined during forward
-      control-flow and return variables being defined during
-      backward-flow.  The value to which a loop variable is bound
-      when control-flow leaves along an edge of
+      One can think of loop variables as being defined during forward
+      control flow and return variables as being defined during
+      backward flow.  The value to which a loop variable is bound
+      when control flow leaves along an edge of
       an <code>execute</code> CFG Term is passed as an argument to
       the tail-called procedure that corresponds to the edge:</p>
 
@@ -490,11 +490,11 @@
       evaluated in the same environment in which
       the <code><span class=token>procedure expression</span></code>
       of an <code>execute</code> CFG term would be evaluated.  Then,
-      all formals are bound in parallel and the loop variable bindings
+      all formals are bound in parallel, and the loop variable bindings
       become visible in the <code><span class=token>cfg
       term</span></code>, with which the forward control flow
       proceeds.  The <code>bind</code> CFG term is similar to
-      the <code>let-values</code> Scheme expressions, which bounds
+      the <code>let-values</code> Scheme expression, which binds
       multiple Scheme variables in parallel.</p>
 
     <pre class=example>(let ([x 1] [y 2])
@@ -506,7 +506,7 @@
     <p>In order to construct more interesting examples, we need to be
       able to introduce loops in control-flow graphs.  This is
       possible with the use of <code>labels</code> CFG terms, which have
-      the following syntax</p>
+      the following syntax:</p>
 
     <p><code>(labels
     ([<span class=token>label</span> <span class=token>cfg
@@ -603,10 +603,10 @@
     term</span>)</code></p>
 
     <p>When the forward control flow enters a CFG block described by
-      a <code>permute</code> CFG term, the CFG blocks describd by
+      a <code>permute</code> CFG term, the CFG blocks described by
       the <code><span class=token>cfg terms</span></code> together
       with their <code><span class=token>labels</span></code> are
-      dynamically permutated and control then passes to the the first CFG block.
+      dynamically permuted, and control then passes to the the first CFG block.
       Within the lexical scope of this CFG term,
       the corresponding <code><span class=token>label</span></code> is
       bound so that when it is called, control proceeds to the
@@ -629,7 +629,7 @@
       is involved.  The <code>permute</code> CFG term's purpose comes
       from some non-determinism it introduces.  In the above example,
       the sequencing of the two <code>bind</code> CFG terms is not
-      determined, i.e. whether the forward control-flow first passes
+      determined, i.e. whether the forward control flow first passes
       through the lexically first <code>bind</code> CFG term and then
       through the lexically second, or vice versa.  In the above
       example, it does not matter.  In general, the non-determinism
@@ -687,10 +687,11 @@
     <p>(There is also a starred
       version <code>define-cfg-syntax*</code> with the same syntax,
       which does not change a previous binding of the
-      identifier <code><span class=token>cfg keyword</span></code> but only adds CFG keyword semantics.)</p>
+      identifier <code><span class=token>cfg keyword</span></code>,
+      but only adds CFG keyword semantics.)</p>
 
     <p>When the expander processes a <code>cfg</code> form, it expands
-      CFG macro uses, which look like Scheme macro uses except for
+      CFG macro uses, which look like Scheme macro uses except
       that a <code><span class=token>cfg keyword</span></code> is used
       instead of a
       (Scheme) <code><span class=token>keyword</span></code>.  CFG
@@ -931,8 +932,8 @@
          [(x) (finally (res) x (halt))])
     res))<span class=result>2</span></pre>
 
-    <p><code>Execute</code> CFG terms can have more than one successor;
-      during evaluation one control path is chosen:</p>
+    <p><code>Execute</code> CFG terms can have more than one successor.
+      During evaluation, one control path is chosen:</p>
 
     <pre class=example>(let ([x 1])
   (cfg (execute (lambda (e1 e2)
@@ -1358,7 +1359,7 @@
 	<p>
 	  At the start of the evaluation of a <code>cfg</code>
 	  expression, these <dfn>CFG macro uses</dfn> are expanded by
-	  the syntax expander into core CFG terms like Scheme macro
+	  the syntax expander into core CFG terms just as Scheme macro
 	  uses are expanded into core forms.  In particular,
 	  a <dfn>CFG transformer</dfn> is like a Scheme transformer.</p>
       </dd>
